@@ -2,28 +2,37 @@ module OXM
   class Object
     attr_reader :tag
 
+    # @return [String]
     def cdata
       @text if @cdata
     end
 
+    # @return [String]
     def text
       @text unless @cdata
     end
 
+    # @param [String] val CDATA content
+    # @return [String]
     def cdata= val
       @cdata = true
       process val
     end
 
+    # @param [String] val Text
+    # @param [String] val
+    # @return [String]
     def text= val
       @cdata = false
       process val
     end
 
+    # @return [Boolean]
     def cdata?
       @cdata
     end
 
+    # @return [String] XML expression for this object
     def to_xml
       io = StringIO.new
       builder = Builder::XmlMarkup.new(:target => io)
@@ -49,36 +58,50 @@ module OXM
       io.string
     end
 
+    # @return [String]
     def to_s
       @text
     end
 
+    # @return [String]
     def inspect
       to_xml
     end
 
+    # @param [String] attr
+    # @return [String]
     def [] attr
       @attrs[attr.to_s]
     end
 
+    # @param [String] attr
+    # @param [String] val
+    # @return [String]
     def []= attr, val
       @attrs[attr.to_s] = val
     end
 
+    # @return [Hash]
     def attributes
       @attrs
     end
 
+    # @return [Hash]
     def elements
       @nodes
     end
     alias children elements
 
+    # @param [String] tag
+    # @param [OXM::Object] object
+    # @return [OXM::Object]
     def add_node tag, object
       @nodes[tag] ||= []
       @nodes[tag] << object
+      self
     end
 
+    # @return [OXM::Object]
     def compact!
       @nodes.each do |key, value|
         @nodes[key] = value.first if value.is_a?(Array) && value.length == 1
@@ -86,6 +109,9 @@ module OXM
       self
     end
 
+    # @param [String] tag
+    # @param [Hash] attrs
+    # @return [OXM::Object]
     def initialize tag, attrs = {}
       @tag = tag
       @attrs = attrs
