@@ -16,6 +16,9 @@ class TestOxm < Test::Unit::TestCase
         <volume unit="l">300</volume>
         <volume unit="ml">400</volume>
       </item>
+      <item dept="D">
+        <volume unit="L">500</volume>
+      </item>
     </container>
     EOF
 
@@ -30,8 +33,9 @@ class TestOxm < Test::Unit::TestCase
       assert_equal 1, result.length
       assert_equal nil, result.first.to_s
       assert_equal({'attr1' => '1', 'attr2' => '2'}, result.first.attributes)
+      assert_equal(result.first.children, result.first.elements)
       assert_equal(%w[item], result.first.children.keys)
-      assert_equal(3, result.first.children.values.first.length)
+      assert_equal(4, result.first.elements.values.first.length)
       assert_equal '1', result.first['attr1']
       assert_equal '2', result.first['attr2']
       assert_equal nil, result.first['attr3']
@@ -43,17 +47,27 @@ class TestOxm < Test::Unit::TestCase
       assert       result.first.item.first.volume.all? { |i| i.text.nil? }
       assert       result.first.item.last.volume.all? { |i| i.cdata? == false }
 
+      container = result.first
+      assert container.compact!.equal?(container) # Object identity
+      assert container.item.is_a?(Array)
+
       result = OXM.from_xml(str, 'container/item')
-      assert_equal 3, result.length
+      assert_equal 4, result.length
+
+      item = result.last
+      item.compact!
+      assert item.volume.is_a?(OXM::Object)
+      assert_equal '500', item.volume.to_s
+      assert_equal 'L', item.volume['unit']
 
       result = OXM.from_xml(str, 'container/item/volume')
-      assert_equal 6, result.length
-      assert_equal %w[100 200 200 300 300 400], result.map(&:to_s)
-      assert_equal %w[ml ml l l l ml], result.map { |e| e['unit'] }
+      assert_equal 7, result.length
+      assert_equal %w[100 200 200 300 300 400 500], result.map(&:to_s)
+      assert_equal %w[ml ml l l l ml L], result.map { |e| e['unit'] }
       assert_equal result.map { |e| e['unit'] }, result.map { |e| e[:unit] }
       assert_equal '<volume unit="ml"><![CDATA[100]]></volume>', result.first.to_xml
 
-      vol = result.last
+      vol = result[-2]
       assert_equal '<volume unit="ml">400</volume>', vol.to_xml
       vol['unit'] = 'L'
       assert_equal '<volume unit="L">400</volume>', vol.to_xml
@@ -79,7 +93,7 @@ class TestOxm < Test::Unit::TestCase
         assert obj.is_a?(OXM::Object)
         cnt += 1
       end
-      assert_equal 6, cnt
+      assert_equal 7, cnt
       assert_nil result
     end
   end

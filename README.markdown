@@ -8,9 +8,11 @@ A tiny Object-XML-Mapper. Requires Nokogiri SAX parser.
   <order date="2011/08/27">
     <item amount="5">Apple</item>
     <item amount="2">Banana</item>
+    <customer id="100">Alice</customer>
   </order>
   <order date="2011/08/27">
     <item amount="1">Zoltax</item>
+    <customer id="200">Bob</customer>
   </order>
 </orders>
 ```
@@ -25,9 +27,17 @@ OXM.from_xml(xml_data_or_io, 'orders/order') do |order|
   order.item.first.to_s
   order.item.first.cdata?
 
-  order.children.each do |tag, children|
+  order.elements.each do |tag, elements_for_the_tag|
     # ...
   end
+
+  order.customer.first.to_s
+  order.customer.first['id']
+
+  # Compaction: collapse single-element Arrays
+  order.compact!
+  order.customer.to_s
+  order.customer['id']
 
   order.to_xml
   order.item.first.to_xml

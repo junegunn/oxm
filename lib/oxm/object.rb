@@ -30,8 +30,8 @@ module OXM
 
       build_node = lambda do |node|
         builder.tag!(node.tag, self.attributes) do
-          node.children.each do |tag, children|
-            children.each do |child|
+          node.elements.each do |tag, elements|
+            elements.each do |child|
               build_node.call child
             end
           end
@@ -69,13 +69,21 @@ module OXM
       @attrs
     end
 
-    def children
+    def elements
       @nodes
     end
+    alias children elements
 
     def add_node tag, object
       @nodes[tag] ||= []
       @nodes[tag] << object
+    end
+
+    def compact!
+      @nodes.each do |key, value|
+        @nodes[key] = value.first if value.is_a?(Array) && value.length == 1
+      end
+      self
     end
 
     def initialize tag, attrs = {}
