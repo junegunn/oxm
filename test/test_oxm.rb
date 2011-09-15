@@ -1,4 +1,3 @@
-$LOAD_PATH.unshift '.'
 require 'helper'
 
 class TestOxm < Test::Unit::TestCase

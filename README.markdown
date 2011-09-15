@@ -1,6 +1,6 @@
 # oxm
 
-A tiny Object-XML-Mapper.
+A tiny Object-XML-Mapper. Requires Nokogiri SAX parser.
 
 ## Examples
 ```xml
@@ -24,6 +24,10 @@ OXM.from_xml(xml_data_or_io, 'orders/order') do |order|
   order.item.first['amount']
   order.item.first.to_s
   order.item.first.cdata?
+
+  order.children.each do |tag, children|
+    # ...
+  end
 
   order.to_xml
   order.item.first.to_xml

@@ -11,5 +11,5 @@ group :development do
   gem "rcov", ">= 0"
 end
 
-gem "builder"
+gem "builder", ">= 3.0.0"
 gem "nokogiri", ">= 1.5.0"
