@@ -1,8 +1,16 @@
 # oxm
 
-A tiny Object-XML-Mapper. Requires Nokogiri SAX parser.
+A tiny, easy-to-use Object-XML-Mapper for Ruby. 
+Internally uses Nokogiri SAX parser which allows handling of large XML documents.
+
+## Installation
+
+```
+gem install oxm
+```
 
 ## Examples
+
 ```xml
 <orders>
   <order date="2011/08/27">
@@ -22,32 +30,39 @@ require 'oxm'
 
 # With block
 OXM.from_xml(xml_data_or_io, 'orders/order') do |order|
-  order.attributes
+  # Accessing attributes of the element
   order['date']
+  order.attributes
 
+  # Accessing attributes and text/cdata values of child elements
   order.item.first['amount']
   order.item.first.to_s
   order.item.first.cdata?
 
+  # Traverses child elements
   order.elements.each do |tag, elements_for_the_tag|
     # ...
   end
 
-  order.customer.first.to_s
-  order.customer.first['id']
 
   # Compaction: collapse single-element Arrays
+  order.customer.first.to_s
+  order.customer.first['id']
   order.compact!
   order.customer.to_s
   order.customer['id']
 
+  # XML expression for the element
   order.to_xml
   order.item.first.to_xml
 end
 
-# Without block
+# Array of elements are returned when block is not given
 items = OXM.from_xml(xml_data_or_io, 'orders/order/item')
 ```
+
+## TODO
+* When block is not given, make from_xml return an Enumerator instead of an Array
 
 ## Contributing to oxm
  
