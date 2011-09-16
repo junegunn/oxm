@@ -22,7 +22,9 @@ require 'oxm'
 
 # With block
 OXM.from_xml(xml_data_or_io, 'orders/order') do |order|
+  order.attributes
   order['date']
+
   order.item.first['amount']
   order.item.first.to_s
   order.item.first.cdata?

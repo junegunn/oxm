@@ -65,7 +65,7 @@ module OXM
 
     # @return [String]
     def inspect
-      to_xml
+      '"' + to_xml.gsub('"', '\"') + '"'
     end
 
     # @param [String] attr

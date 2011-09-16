@@ -50,6 +50,11 @@ module OXM
       @tags.pop
     end
 
+    def end_document
+      # FIXME
+      puts 'ED'
+    end
+
     def match?
       @tags.join('/') == @loop_node
     end
