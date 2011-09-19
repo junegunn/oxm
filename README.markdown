@@ -36,6 +36,7 @@ OXM.from_xml(xml_data_or_io, 'orders/order') do |order|
 
   # Accessing attributes and text/cdata values of child elements
   order.item.first['amount']
+  order.item.first.content
   order.item.first.to_s
   order.item.first.cdata?
 
@@ -43,7 +44,6 @@ OXM.from_xml(xml_data_or_io, 'orders/order') do |order|
   order.elements.each do |tag, elements_for_the_tag|
     # ...
   end
-
 
   # Compaction: collapse single-element Arrays
   order.customer.first.to_s

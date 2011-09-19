@@ -25,11 +25,11 @@ module OXM
     end
 
     def cdata_block str
-      @object.cdata = @object.cdata.to_s + str if @object
+      @object.cdata = @object.to_s + str if @object
     end
 
     def characters str
-      @object.text = @object.text.to_s + str if @object
+      @object.content = @object.to_s + str if @object
     end
 
     def end_element tag

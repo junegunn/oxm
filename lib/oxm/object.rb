@@ -2,28 +2,23 @@ module OXM
   class Object
     attr_reader :tag
 
-    # @return [String]
-    def cdata
-      @text if @cdata
+    # @return [String/NilClass]
+    def content
+      @data
     end
 
+    # @param [String] val Text
+    # @param [String] val
     # @return [String]
-    def text
-      @text unless @cdata
+    def content= val
+      @cdata = false
+      process val
     end
 
     # @param [String] val CDATA content
     # @return [String]
     def cdata= val
       @cdata = true
-      process val
-    end
-
-    # @param [String] val Text
-    # @param [String] val
-    # @return [String]
-    def text= val
-      @cdata = false
       process val
     end
 
@@ -38,17 +33,19 @@ module OXM
       builder = Builder::XmlMarkup.new(:target => io)
 
       build_node = lambda do |node|
-        builder.tag!(node.tag, self.attributes) do
+        builder.tag!(node.tag, node.attributes) do
           node.elements.each do |tag, elements|
+            next if elements.nil?
+            elements = [elements] unless elements.is_a? Array
             elements.each do |child|
               build_node.call child
             end
           end
-          if node.to_s
+          if node.content
             if node.cdata?
-              builder.cdata! node.to_s
+              builder.cdata! node.content
             else
-              builder.text! node.to_s
+              builder.text! node.content
             end
           end
         end
@@ -60,7 +57,7 @@ module OXM
 
     # @return [String]
     def to_s
-      @text
+      @data.to_s
     end
 
     # @return [String]
@@ -101,10 +98,23 @@ module OXM
       self
     end
 
+    # Compacts the object by removing empty child elements and then collapsing element Arrays. 
+    # After compaction, single-element arrays are collapsed, and empty arrays become nil.
     # @return [OXM::Object]
     def compact!
       @nodes.each do |key, value|
-        @nodes[key] = value.first if value.is_a?(Array) && value.length == 1
+        if value.is_a?(Array)
+          value = value.reject(&:empty?)
+          @nodes[key] =
+            case value.length
+            when 0
+              nil
+            when 1
+              value.first
+            else
+              value
+            end
+        end
       end
       self
     end
@@ -117,7 +127,12 @@ module OXM
       @attrs = attrs
       @nodes = {}
       @cdata = false
-      @text  = nil
+      @data  = nil
+    end
+
+    # @return [Boolean] Return if the element is empty (no text value and no attributes)
+    def empty?
+      self.to_s.empty? && self.attributes.empty?
     end
 
   private
@@ -131,8 +146,7 @@ module OXM
 
     def process str
       str = str.to_s.strip
-      return if str.empty?
-      @text = str
+      @data = str
     end
 
   end#Object
