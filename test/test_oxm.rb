@@ -1,8 +1,56 @@
 require 'helper'
 
 class TestOxm < Test::Unit::TestCase
+  require 'tempfile'
+  def test_errors
+    str = '
+    <?xml version="1.0"?>
+    <container attr1="1" attr2="2">
+      <item dept="A">
+        <volume unit="ml"><![CDATA[ 100 ]]></volume>
+        <volume unit="ml"><![CDATA[200]]></volume>
+      </item>
+      <item dept="B">
+        <volume unit="l">200</volume>
+        <volume unit="l">300</volume>
+      </item>
+    </container>
+    '
+
+    # Test errors (XML declaration allowed only at the start of the document)
+    oxm = OXM.new str
+    result = oxm.from_xml('container')
+    assert_equal 0, result.length
+    assert_equal 1, oxm.errors.length
+    assert_equal 0, oxm.warnings.length
+
+    # Test no-errors
+    oxm = OXM.new str.strip
+    result = oxm.from_xml('container')
+    assert_equal 1, result.length
+    assert_equal 0, oxm.errors.length
+    assert_equal 0, oxm.warnings.length
+
+    # Test empty IO
+    tf = Tempfile.new('oxm')
+    tf << str.strip
+    tf.flush
+
+    oxm = OXM.new File.open(tf.path)
+    result = oxm.from_xml('container')
+    assert_equal 1, result.length
+    assert_equal 0, oxm.errors.length
+    assert_equal 0, oxm.warnings.length
+
+    result = oxm.from_xml('container')
+    assert_equal 0, result.length
+    assert_equal 2, oxm.errors.length
+    assert_equal 0, oxm.warnings.length
+  end
+
   def test_from_xml_string
-    str = <<-EOF
+    str = '
+    <?xml version="1.0"?>
     <container attr1="1" attr2="2">
       <item dept="A">
         <volume unit="ml"><![CDATA[ 100 ]]></volume>
@@ -21,15 +69,17 @@ class TestOxm < Test::Unit::TestCase
         <volume></volume>
       </item>
     </container>
-    EOF
+    '
 
-    require 'tempfile'
+    # STRIP
+    str = str.strip
+
     tf = Tempfile.new('oxm')
     tf << str
     tf.flush
 
-    [str, File.open(tf.path)].each do |input|
-      result = OXM.from_xml(input, 'container')
+    [lambda { str }, lambda { File.open(tf.path) }].each do |input|
+      result = OXM.from_xml(input.call, 'container')
       assert       result.is_a?(Array)
       assert_equal 1, result.length
       assert_equal "", result.first.to_s
@@ -51,7 +101,7 @@ class TestOxm < Test::Unit::TestCase
       assert container.compact!.equal?(container) # Object identity
       assert container.item.is_a?(Array)
 
-      result = OXM.from_xml(str, 'container/item')
+      result = OXM.from_xml(input.call, 'container/item')
       assert_equal 4, result.length
 
       item = result.last
@@ -60,7 +110,7 @@ class TestOxm < Test::Unit::TestCase
       assert_equal '500', item.volume.to_s
       assert_equal 'L', item.volume['unit']
 
-      result = OXM.from_xml(str, 'container/item/volume')
+      result = OXM.from_xml(input.call, 'container/item/volume')
       assert_equal 8, result.length
       assert_equal %w[100 200 200 300 300 400 500] + [""], result.map(&:to_s)
       assert_equal %w[ml ml l l l ml L] + [nil], result.map { |e| e['unit'] }
@@ -99,13 +149,32 @@ class TestOxm < Test::Unit::TestCase
       assert_equal '<volume unit="L"></volume>', vol.to_xml
 
       cnt = 0
-      result = OXM.from_xml(str, 'container/item/volume') do |obj|
+      result = OXM.from_xml(input.call, 'container/item/volume') do |obj|
         assert_equal 'volume', obj.tag
         assert obj.is_a?(OXM::Object)
         cnt += 1
       end
       assert_equal 8, cnt
       assert_nil result
+    end
+  end
+
+  def test_nil
+    str = <<-EOF
+    <container>
+      <item></item>
+      <item>        </item>
+      <item>
+      </item>
+      <item>
+      
+      </item>
+    </container>
+    EOF
+
+    OXM.from_xml(str, 'container/item') do |item|
+      assert_nil item.content
+      assert_equal "<item></item>", item.to_xml
     end
   end
 
@@ -134,11 +203,16 @@ class TestOxm < Test::Unit::TestCase
         <volume></volume>
         <volume></volume>
       </item>
+      <item dept="nil">
+        <volume><extra></extra></volume>
+        <volume><extra>2</extra></volume>
+        <volume></volume>
+      </item>
     </container>
     EOF
 
     items = OXM.from_xml(str, 'container/item')
-    assert_equal 5, items.length
+    assert_equal 6, items.length
 
     items[0].compact!
     assert_equal Array, items[0].volume.class
@@ -162,5 +236,10 @@ class TestOxm < Test::Unit::TestCase
     assert_raise(NoMethodError) {
       items[4].voll
     }
+
+    items[5].compact!
+    assert_equal Array, items[5].volume.class
+    assert_equal 2, items[5].volume.length
+
   end
 end

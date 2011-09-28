@@ -1,4 +1,4 @@
-module OXM
+class OXM
   class Object
     attr_reader :tag
 
@@ -12,14 +12,14 @@ module OXM
     # @return [String]
     def content= val
       @cdata = false
-      process val
+      @data = val
     end
 
     # @param [String] val CDATA content
     # @return [String]
     def cdata= val
       @cdata = true
-      process val
+      @data = val
     end
 
     # @return [Boolean]
@@ -43,9 +43,9 @@ module OXM
           end
           if node.content
             if node.cdata?
-              builder.cdata! node.content
+              builder.cdata! node.to_s
             else
-              builder.text! node.content
+              builder.text! node.to_s
             end
           end
         end
@@ -130,9 +130,9 @@ module OXM
       @data  = nil
     end
 
-    # @return [Boolean] Return if the element is empty (no text value and no attributes)
+    # @return [Boolean] Return if the element is empty (no text value, no attributes and no child elements)
     def empty?
-      self.to_s.empty? && self.attributes.empty?
+      self.to_s.empty? && self.attributes.empty? && self.elements.empty?
     end
 
   private
@@ -143,12 +143,6 @@ module OXM
         raise NoMethodError.new("undefined method or attribute `#{symb}'")
       end
     end
-
-    def process str
-      str = str.to_s.strip
-      @data = str
-    end
-
   end#Object
 end#OXM
 

@@ -1,3 +1,11 @@
+### 0.1.3 / 2011/09/27
+* OXM can be instantiated. Warning and error messages during the last OXM#from_xml call can be accessed with OXM#warnings and OXM#errors instance methods.
+
+### 0.1.2 / 2011/09/20
+* Bug fix: Invalid handling of empty content
+
+### 0.1.1 / 2011/09/19
+* Bug fix: OXM::Object#compact! incorrectly nilified elements
 ### 0.1.0 / 2011/09/19
 * Disclaimer: Not compatible to the previous versions
  * Removed: OXM::Object#cdata, OXM::Object#text, OXM::Object#text=
