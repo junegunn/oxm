@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'helper'
 
 class TestOxm < Test::Unit::TestCase
@@ -8,7 +9,7 @@ class TestOxm < Test::Unit::TestCase
     <container attr1="1" attr2="2">
       <item dept="A">
         <volume unit="ml"><![CDATA[ 100 ]]></volume>
-        <volume unit="ml"><![CDATA[200]]></volume>
+        <volume unit="ml"><![CDATA[백]]></volume>
       </item>
       <item dept="B">
         <volume unit="l">200</volume>
@@ -19,14 +20,14 @@ class TestOxm < Test::Unit::TestCase
 
     # Test errors (XML declaration allowed only at the start of the document)
     oxm = OXM.new str
-    result = oxm.from_xml('container')
+    result = oxm.from_xml('container').to_a
     assert_equal 0, result.length
     assert_equal 1, oxm.errors.length
     assert_equal 0, oxm.warnings.length
 
     # Test no-errors
     oxm = OXM.new str.strip
-    result = oxm.from_xml('container')
+    result = oxm.from_xml('container').to_a
     assert_equal 1, result.length
     assert_equal 0, oxm.errors.length
     assert_equal 0, oxm.warnings.length
@@ -37,12 +38,12 @@ class TestOxm < Test::Unit::TestCase
     tf.flush
 
     oxm = OXM.new File.open(tf.path)
-    result = oxm.from_xml('container')
+    result = oxm.from_xml('container').to_a
     assert_equal 1, result.length
     assert_equal 0, oxm.errors.length
     assert_equal 0, oxm.warnings.length
 
-    result = oxm.from_xml('container')
+    result = oxm.from_xml('container').to_a
     assert_equal 0, result.length
     assert_equal 2, oxm.errors.length
     assert_equal 0, oxm.warnings.length
@@ -80,7 +81,8 @@ class TestOxm < Test::Unit::TestCase
 
     [lambda { str }, lambda { File.open(tf.path) }].each do |input|
       result = OXM.from_xml(input.call, 'container')
-      assert       result.is_a?(Array)
+      assert       result.is_a?(Enumerator)
+      result = result.to_a
       assert_equal 1, result.length
       assert_equal "", result.first.to_s
       assert_equal({'attr1' => '1', 'attr2' => '2'}, result.first.attributes)
@@ -101,7 +103,7 @@ class TestOxm < Test::Unit::TestCase
       assert container.compact!.equal?(container) # Object identity
       assert container.item.is_a?(Array)
 
-      result = OXM.from_xml(input.call, 'container/item')
+      result = OXM.from_xml(input.call, 'container/item').to_a
       assert_equal 4, result.length
 
       item = result.last
@@ -110,7 +112,7 @@ class TestOxm < Test::Unit::TestCase
       assert_equal '500', item.volume.to_s
       assert_equal 'L', item.volume['unit']
 
-      result = OXM.from_xml(input.call, 'container/item/volume')
+      result = OXM.from_xml(input.call, 'container/item/volume').to_a
       assert_equal 8, result.length
       assert_equal %w[100 200 200 300 300 400 500] + [""], result.map(&:to_s)
       assert_equal %w[ml ml l l l ml L] + [nil], result.map { |e| e['unit'] }
@@ -167,7 +169,7 @@ class TestOxm < Test::Unit::TestCase
       <item>
       </item>
       <item>
-      
+
       </item>
     </container>
     EOF
@@ -211,7 +213,7 @@ class TestOxm < Test::Unit::TestCase
     </container>
     EOF
 
-    items = OXM.from_xml(str, 'container/item')
+    items = OXM.from_xml(str, 'container/item').to_a
     assert_equal 6, items.length
 
     items[0].compact!

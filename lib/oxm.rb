@@ -19,10 +19,10 @@ class OXM
 
   # @param [String] loop_element
   def from_xml loop_element, &block
+    return enum_for(:from_xml, loop_element, &block) unless block_given?
     @handler = OXM::SaxHandler.new(loop_element, &block)
-    parser = Nokogiri::XML::SAX::Parser.new(@handler)
+    parser = Nokogiri::XML::SAX::Parser.new(@handler, 'UTF-8')
     parser.parse @xml
-    @handler.outputs unless block_given?
   end
 
   # @return [Array] Error messages during the last from_xml call

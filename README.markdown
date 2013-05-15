@@ -1,6 +1,6 @@
 # oxm
 
-A tiny, easy-to-use Object-XML-Mapper for Ruby. 
+A tiny, easy-to-use Object-XML-Mapper for Ruby.
 Internally uses Nokogiri SAX parser which allows handling of large XML documents.
 
 ## Installation
@@ -61,11 +61,8 @@ end
 items = OXM.from_xml(xml_data_or_io, 'orders/order/item')
 ```
 
-## TODO
-* When block is not given, make from_xml return an Enumerator instead of an Array
-
 ## Contributing to oxm
- 
+
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet
 * Check out the issue tracker to make sure someone already hasn't requested it and/or contributed it
 * Fork the project

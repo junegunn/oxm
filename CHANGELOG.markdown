@@ -1,3 +1,6 @@
+### 0.2.0 / 2013/05/15
+* OXM.from_xml now returns an Enumerator when block is not given
+
 ### 0.1.3 / 2011/09/27
 * OXM can be instantiated. Warning and error messages during the last OXM#from_xml call can be accessed with OXM#warnings and OXM#errors instance methods.
 
