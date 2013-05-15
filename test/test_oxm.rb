@@ -81,7 +81,11 @@ class TestOxm < Test::Unit::TestCase
 
     [lambda { str }, lambda { File.open(tf.path) }].each do |input|
       result = OXM.from_xml(input.call, 'container')
-      assert       result.is_a?(Enumerator)
+      if defined?(Enumerable::Enumerator)
+        assert result.is_a?(Enumerable::Enumerator)
+      else
+        assert result.is_a?(Enumerator)
+      end
       result = result.to_a
       assert_equal 1, result.length
       assert_equal "", result.first.to_s

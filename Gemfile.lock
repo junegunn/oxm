@@ -10,6 +10,7 @@ GEM
   specs:
     builder (3.0.4)
     nokogiri (1.5.9)
+    nokogiri (1.5.9-java)
 
 PLATFORMS
   java
